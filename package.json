@@ -1,0 +1,40 @@
+{
+  "name": "n8n-nodes-memberspot",
+  "version": "1.0.0",
+  "description": "n8n custom node for Memberspot API integration",
+  "keywords": [
+    "n8n",
+    "memberspot",
+    "automation",
+    "api",
+    "n8n-community-node-package"
+  ],
+  "license": "MIT",
+  "author": "Dein Name",
+  "main": "dist/nodes/Memberspot/Memberspot.node.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "prepublishOnly": "npm run build",
+    "lint": "eslint nodes credentials --ext .ts",
+    "lint:fix": "eslint nodes credentials --ext .ts --fix",
+    "lint:all": "npm run lint && npm run lint:node",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.40.0",
+    "@typescript-eslint/parser": "^8.40.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "n8n-workflow": "^1.0.0"
+  }
+}
