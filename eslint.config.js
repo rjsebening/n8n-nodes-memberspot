@@ -1,18 +1,15 @@
 import tsParser from '@typescript-eslint/parser';
-import ts from '@typescript-eslint/eslint-plugin';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
 import prettier from 'eslint-plugin-prettier';
-import n8n from 'eslint-plugin-n8n-nodes-base';
 import js from '@eslint/js';
-import tseslint from 'typescript-eslint';
 import eslintConfigPrettier from 'eslint-config-prettier';
+import n8nPlugin from 'eslint-plugin-n8n-nodes-base';
 
 export default [
   {
     ignores: ['dist/**', 'node_modules/**'],
   },
   js.configs.recommended, // ESLint JS defaults
-  ...tseslint.configs.recommended, // TS rules
-  eslintConfigPrettier, // disables conflicting rules with Prettier
   {
     files: ['**/*.ts'],
     languageOptions: {
@@ -23,9 +20,9 @@ export default [
       },
     },
     plugins: {
-      '@typescript-eslint': ts,
+      '@typescript-eslint': tsPlugin,
       prettier,
-      'n8n-nodes-base': n8n,
+      'n8n-nodes-base': n8nPlugin,
     },
     rules: {
       'prettier/prettier': 'warn',
@@ -33,4 +30,5 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  eslintConfigPrettier, // disables conflicting rules with Prettier
 ];

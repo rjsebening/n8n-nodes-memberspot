@@ -1,13 +1,7 @@
-
 # n8n-nodes-memberspot
 
-[![n8n](https://img.shields.io/badge/n8n-1.107.3%2B-brightgreen)](https://n8n.io) 
-[![npm version](https://img.shields.io/npm/v/n8n-nodes-memberspot.svg?logo=npm&label=npm%20package)](https://www.npmjs.com/package/n8n-nodes-memberspot)
-[![npm downloads](https://img.shields.io/npm/dm/n8n-nodes-memberspot.svg?logo=npm&label=downloads)](https://www.npmjs.com/package/n8n-nodes-memberspot)
+[![n8n](https://img.shields.io/badge/n8n-1.107.3%2B-brightgreen)](https://n8n.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![GitHub issues](https://img.shields.io/github/issues/redhat030/n8n-nodes-memberspot.svg?logo=github)](https://github.com/redhat030/n8n-nodes-memberspot/issues)
-[![GitHub stars](https://img.shields.io/github/stars/redhat030/n8n-nodes-memberspot.svg?logo=github)](https://github.com/redhat030/n8n-nodes-memberspot/stargazers)
-
 
 An n8n Community Node for the **Memberspot API**, allowing you to seamlessly integrate your Memberspot instance into n8n workflows.
 
@@ -25,60 +19,69 @@ All trademarks are the property of their respective owners.
 
 ## 🚀 Features
 
-- **5 resources** fully supported (User, Offer, Chapter, Exam, Custom Property)  
-- **11+ operations** for maximum flexibility  
-- **Dropdown selection** for Offers with live data from `/v1/offers`  
-- **TypeScript** implementation for the best developer experience  
-- **Simple authentication** via API Key  
+- **5 resources** fully supported (User, Offer, Chapter, Exam, Custom Property)
+- **11+ operations** for maximum flexibility
+- **Dropdown selection** for Offers with live data from `/v1/offers`
+- **TypeScript** implementation for the best developer experience
+- **Simple authentication** via API Key
 
 ## 📋 Supported Operations
 
 ### 👤 **User**
-- List Users  
-- Find by Email  
-- Grant Offer by Email (with `firstname`, `lastname`, `email`, `offerId`, `orderId`)  
-- Set Offer State (active/inactive)  
-- Set Order State (active/inactive)  
-- Set Custom Properties  
-- Delete Users  
-- List Course Progress  
-- Get Course Progress (for a specific course)  
-- Get Login Token  
+
+- List Users
+- Find by Email
+- Grant Offer by Email (with `firstname`, `lastname`, `email`, `offerId`, `orderId`)
+- Set Offer State (active/inactive)
+- Set Order State (active/inactive)
+- Set Custom Properties
+- Delete Users
+- List Course Progress
+- Get Course Progress (for a specific course)
+- Get Login Token
 
 ### 🎁 **Offer**
-- Get All Offers  
+
+- Get All Offers
 
 ### 📚 **Chapter**
-- Enable Chapter Access  
+
+- Enable Chapter Access
 
 ### 🛠 **Custom Property**
-- List Custom User Properties  
+
+- List Custom User Properties
 
 ### 📝 **Exam**
-- List Exam Results  
+
+- List Exam Results
 
 ## 💡 Example Use Cases
 
 ### Automated User Management
+
 Automatically create new users and assign them offers – without manual work in the Memberspot backend.
 
 ### E-Commerce Integration
+
 Connect Copecart, Digistore, or Stripe via webhook and automatically grant course access in Memberspot after a purchase.
 
 ### Progress Monitoring
+
 Track your users’ learning progress automatically and send personalized reminders or congratulations.
 
 ### Single-Sign-On Links
+
 Generate login links for users via workflow and deliver them by email or messenger.
 
 ## 🛠️ Installation
 
 ### Option 1: n8n Community Nodes (Recommended)
 
-1. Open your n8n instance  
-2. Go to **Settings → Community Nodes**  
-3. Install: `n8n-nodes-memberspot`  
-4. Restart n8n  
+1. Open your n8n instance
+2. Go to **Settings → Community Nodes**
+3. Install: `n8n-nodes-memberspot`
+4. Restart n8n
 
 ### Option 2: Manual Installation
 
@@ -109,30 +112,20 @@ docker run -it --rm \
 ### Generate an API Key
 
 1.  Log into your **Memberspot instance**: [https://app.memberspot.de](https://app.memberspot.de/)
-    
 2.  Go to **Settings → Integrations**
-    
 3.  Under **API Keys**, click **"Create API Key"**
-    
 4.  Copy the generated API Key (the secret is only shown **once**)
-    
 
 ### Configure Credentials in n8n
 
 1.  Open n8n and go to **Credentials**
-    
 2.  Click **"New Credential"**
-    
 3.  Search for **"Memberspot API"**
-    
 4.  Fill in the fields:
-    
-    -   **API Key**: your generated secret key
-        
-    -   **Base URL**: `https://api.memberspot.de` (default)
-        
+    - **API Key**: your generated secret key
+    - **Base URL**: `https://api.memberspot.de` (default)
+
 5.  Test the connection and save
-    
 
 ## 📖 Usage
 
@@ -192,26 +185,17 @@ npm test
 ### Pull Request Guidelines
 
 1.  **Fork** the repository
-    
 2.  Create a **feature branch** (`git checkout -b feature/amazing-feature`)
-    
 3.  **Commit** your changes (`git commit -m 'Add amazing feature'`)
-    
 4.  **Push** to the branch (`git push origin feature/amazing-feature`)
-    
 5.  Open a **Pull Request**
-    
 
 ### Code Style
 
--   Use TypeScript for all new features
-    
--   Follow the ESLint configuration
-    
--   Add tests for new functionality
-    
--   Update documentation
-    
+- Use TypeScript for all new features
+- Follow the ESLint configuration
+- Add tests for new functionality
+- Update documentation
 
 ## 📝 Changelog
 
@@ -219,25 +203,17 @@ npm test
 
 #### 🎉 Initial Release
 
--   ✅ Full Memberspot API integration
-    
--   ✅ 5 resources with 11+ operations
-    
--   ✅ Offer dropdown via `/v1/offers`
-    
--   ✅ TypeScript implementation
-    
--   ✅ Comprehensive error handling
-    
+- ✅ Full Memberspot API integration
+- ✅ 5 resources with 11+ operations
+- ✅ Offer dropdown via `/v1/offers`
+- ✅ TypeScript implementation
+- ✅ Comprehensive error handling
 
 ## 🛠️ Compatibility
 
--   **n8n Version**: 1.107.3+ (tested with latest)
-    
--   **Node Version**: 14+
-    
--   **TypeScript**: 4.0+
-    
+- **n8n Version**: 1.107.3+ (tested with latest)
+- **Node Version**: 14+
+- **TypeScript**: 4.0+
 
 ## 📄 License
 
@@ -260,8 +236,6 @@ A: This Node covers all public API v1.0 endpoints.
 **Q: How do I find my Memberspot API base URL?**  
 A: The default base URL is `https://api.memberspot.de/v1`.
 
-----------
-
 ⭐ **Like this Node?** Give us a star on GitHub!
 
 💡 **Feature request?** Open an issue – we’re always open to improvements!
@@ -273,11 +247,7 @@ It only provides an interface to the publicly available Memberspot API under its
 
 **Important Notes:**
 
--   This Node is developed and maintained by the community
-    
--   For issues with the Memberspot API itself, please contact official Memberspot support
-    
--   All Memberspot trademarks and logos belong to Memberspot
-    
--   This Node only acts as a connector to the public API
-   
+- This Node is developed and maintained by the community
+- For issues with the Memberspot API itself, please contact official Memberspot support
+- All Memberspot trademarks and logos belong to Memberspot
+- This Node only acts as a connector to the public API
