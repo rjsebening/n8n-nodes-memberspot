@@ -1,69 +1,70 @@
 {
   "name": "n8n-nodes-memberspot",
   "version": "1.0.0",
-  "type": "module",
   "description": "n8n custom node for Memberspot API integration",
   "license": "MIT",
-  "homepage": "https://github.com/redhat030/n8n-nodes-memberspot#readme",
+  "homepage": "https://github.com/rjsebening/n8n-nodes-memberspot#readme",
   "author": {
     "name": "Jörg Sebening",
     "email": "dev@joerg-sebening.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/redhat030/n8n-nodes-memberspot.git"
+    "url": "git+https://github.com/rjsebening/n8n-nodes-memberspot.git"
   },
   "bugs": {
-    "url": "https://github.com/redhat030/n8n-nodes-memberspot/issues"
+    "url": "https://github.com/rjsebening/n8n-nodes-memberspot/issues"
+  },
+  "engines": {
+    "node": ">=20.15"
+  },
+  "scripts": {
+    "build": "npx rimraf dist && tsc",
+    "dev": "tsc --watch",
+    "format": "prettier nodes credentials --write",
+    "lint": "eslint nodes credentials package.json",
+    "lintfix": "eslint nodes credentials package.json --fix",
+    "prepublishOnly": "npm run build && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json"
   },
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "files": [
     "dist",
     "README.md",
-    "README.de.md",
-    "credentials.md",
     "LICENSE"
   ],
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
-    }
+  "publishConfig": {
+    "access": "public"
+  },
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/MemberspotApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/Memberspot/Memberspot.node.js"
+    ]
   },
   "keywords": [
+    "n8n-community-node-package",
     "n8n",
     "memberspot",
     "automation",
-    "api",
-    "n8n-community-node-package"
+    "workflow"
   ],
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "clean": "rm -rf dist",
-    "prebuild": "npm run clean",
-    "prepublishOnly": "npm run build",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
-  },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.40.0",
-    "@typescript-eslint/parser": "^8.40.0",
-    "eslint": "^8.57.1",
-    "eslint-config-prettier": "^9.1.2",
+    "@typescript-eslint/eslint-plugin": "~8.32.0",
+    "@typescript-eslint/parser": "~8.32.0",
+    "eslint": "^8.57.0",
     "eslint-plugin-n8n-nodes-base": "^1.16.3",
-    "eslint-plugin-prettier": "^5.5.4",
+    "exit": "^0.1.2",
     "prettier": "^3.6.2",
-    "typescript": "^5.4.0"
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
   },
   "dependencies": {
-    "n8n-workflow": "^1.0.0"
-  },
-  "engines": {
-    "node": ">=18"
+    "form-data": "^4.0.4"
   }
 }
