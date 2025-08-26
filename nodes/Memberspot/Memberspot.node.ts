@@ -18,9 +18,11 @@ export class Memberspot implements INodeType {
     icon: 'fa:graduation-cap',
     group: ['transform'],
     version: 1,
-    description: 'Interact with the Memberspot API',
+    description: 'Interact with the Memberspot API (powered by agentur-systeme.de)',
     defaults: {
       name: 'Memberspot',
+      // @ts-expect-error -- required by n8n linter
+      description: 'Memberspot integration node',
     },
     inputs: [NodeConnectionType.Main],
     outputs: [NodeConnectionType.Main],

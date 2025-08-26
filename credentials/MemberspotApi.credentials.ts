@@ -3,7 +3,7 @@ import { ICredentialType, INodeProperties, IAuthenticate, ICredentialTestRequest
 export class MemberspotApi implements ICredentialType {
   name = 'memberspotApi';
   displayName = 'Memberspot API';
-  documentationUrl = 'https://api.memberspot.de/api';
+  documentationUrl = 'https://github.com/rjsebening/n8n-nodes-memberspot/blob/main/CREDENTIALS.md';
 
   properties: INodeProperties[] = [
     {
