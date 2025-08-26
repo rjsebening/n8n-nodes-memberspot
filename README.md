@@ -4,9 +4,8 @@
   
 
 [![n8n](https://img.shields.io/badge/n8n-1.107.3%2B-brightgreen)](https://n8n.io)
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-
+![Memberspot Node](https://img.shields.io/badge/n8n-community--node-FF6D5A)
   
 
 An n8n Community Node for the **Memberspot API**, allowing you to seamlessly integrate your Memberspot instance into n8n workflows.
