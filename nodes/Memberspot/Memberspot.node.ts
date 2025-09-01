@@ -7,8 +7,9 @@ import {
   INodeTypeDescription,
   NodeConnectionType,
   NodeApiError,
-  IRequestOptions,
+  IHttpRequestOptions,
   JsonObject,
+  NodeOperationError,
 } from 'n8n-workflow';
 
 export class Memberspot implements INodeType {
@@ -118,6 +119,15 @@ export class Memberspot implements INodeType {
         },
       },
       {
+        displayName: 'Offer ID',
+        name: 'offerId',
+        type: 'string',
+        default: '',
+        displayOptions: { show: { resource: ['user'], operation: ['find'] } },
+        description:
+          'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
+      },
+      {
         displayName: 'Order ID',
         name: 'orderId',
         type: 'string',
@@ -142,7 +152,7 @@ export class Memberspot implements INodeType {
         type: 'boolean',
         default: true,
         displayOptions: {
-          show: { resource: ['user'], operation: ['setOfferState', 'setOrderState'] },
+          show: { resource: ['user'], operation: ['setOfferState', 'setOrderState', 'find'] },
         },
       },
       {
@@ -269,135 +279,226 @@ export class Memberspot implements INodeType {
         required: true,
         displayOptions: { show: { resource: ['exam'], operation: ['listResults'] } },
       },
+      // ------------------- List User  -------------------
+      {
+        displayName: 'Additional Options',
+        name: 'additionalOptions',
+        type: 'collection',
+        placeholder: 'Add Option',
+        default: {},
+        displayOptions: {
+          show: {
+            resource: ['user'],
+            operation: ['list'],
+          },
+        },
+        options: [
+          {
+            displayName: 'Active Filter',
+            name: 'activeFilter',
+            type: 'options',
+            options: [
+              { name: 'All', value: '' },
+              { name: 'Active Only', value: true },
+              { name: 'Inactive Only', value: false },
+            ],
+            default: '',
+            description: 'Filter by active/inactive status',
+          },
+          {
+            displayName: 'Filter by Course ID',
+            name: 'filterCourseId',
+            type: 'string',
+            default: '',
+            description: 'Filter users by specific course ID',
+          },
+
+          {
+            displayName: 'Filter by Offer Name or ID',
+            name: 'filterOfferId',
+            type: 'options',
+            typeOptions: {
+              loadOptionsMethod: 'getOffers',
+            },
+            default: '',
+            description:
+              'Filter users by specific offer. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+          },
+
+          {
+            displayName: 'Last Loaded ID',
+            name: 'lastLoadedId',
+            type: 'string',
+            default: '',
+            description: 'Page to continue loading at (located in response in next_page property)',
+          },
+          {
+            displayName: 'Page Length',
+            name: 'pageLength',
+            type: 'number',
+            default: 10,
+            description: 'Number of items per page',
+          },
+        ],
+      },
     ],
   };
 
   methods = {
     loadOptions: {
-      async getOffers(): Promise<INodePropertyOptions[]> {
-        const self = this as unknown as ILoadOptionsFunctions;
-        const credentials = await self.getCredentials('memberspotApi');
-        const baseUrl = (credentials.baseUrl as string).replace(/\/$/, '');
+      async getOffers(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+        try {
+          const credentials = await this.getCredentials('memberspotApi');
+          const baseUrl = (credentials.baseUrl as string).replace(/\/$/, '');
 
-        const options: IRequestOptions = {
-          method: 'GET',
-          url: `${baseUrl}/v1/offers`,
-          json: true,
-        };
+          const options: IHttpRequestOptions = {
+            method: 'GET',
+            url: `${baseUrl}/v1/offers`,
+            json: true,
+            headers: {
+              'X-API-KEY': credentials.apiKey as string, // ✅ Manuell setzen
+              'Content-Type': 'application/json',
+            },
+          };
 
-        const response = await self.helpers.requestWithAuthentication.call(self, 'memberspotApi', options);
-
-        return (response as Array<{ id: string; name: string }>).map((offer) => ({
-          name: offer.name,
-          value: offer.id,
-        }));
+          const response = await this.helpers.httpRequest(options);
+          return response.map((offer: any) => ({
+            name: offer.name || `Offer ${offer.id}`,
+            value: offer.id,
+          }));
+        } catch (error) {
+          throw new NodeOperationError(
+            this.getNode(),
+            `Failed to load offers: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          );
+        }
       },
     },
   };
 
-  async execute(): Promise<INodeExecutionData[][]> {
-    const self = this as unknown as IExecuteFunctions;
-
-    const items = self.getInputData();
+  async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+    const items = this.getInputData();
     const returnData: INodeExecutionData[] = [];
-
-    const credentials = await self.getCredentials('memberspotApi');
+    const credentials = await this.getCredentials('memberspotApi');
     const baseUrl = (credentials.baseUrl as string).replace(/\/$/, '');
 
     for (let i = 0; i < items.length; i++) {
-      const resource = self.getNodeParameter('resource', i) as string;
-      const operation = self.getNodeParameter('operation', i) as string;
+      const resource = this.getNodeParameter('resource', i) as string;
+      const operation = this.getNodeParameter('operation', i) as string;
 
       let responseData;
-      let options: IRequestOptions = { json: true, method: 'GET', url: '' };
+      let options: IHttpRequestOptions = {
+        json: true,
+        method: 'GET',
+        url: '',
+        headers: {
+          'X-API-KEY': credentials.apiKey as string,
+          'Content-Type': 'application/json',
+        },
+      };
 
       try {
         // ---------------- USER ----------------
         if (resource === 'user') {
           if (operation === 'list') {
-            options.url = `${baseUrl}/v1/users/list`;
-            responseData = await self.helpers.requestWithAuthentication.call(self, 'memberspotApi', options);
+            const additionalOptions = this.getNodeParameter('additionalOptions', i, {}) as any;
+
+            const queryParams: any = {};
+            if (additionalOptions.lastLoadedId) queryParams.lastLoadedId = additionalOptions.lastLoadedId;
+            if (additionalOptions.pageLength) queryParams.pageLength = additionalOptions.pageLength;
+            if (additionalOptions.filterOfferId) queryParams.offerId = additionalOptions.filterOfferId;
+            if (additionalOptions.filterCourseId) queryParams.courseId = additionalOptions.filterCourseId;
+            if (additionalOptions.activeFilter !== undefined && additionalOptions.activeFilter !== '') {
+              queryParams.active = additionalOptions.activeFilter;
+            }
+
+            const queryString =
+              Object.keys(queryParams).length > 0 ? '?' + new URLSearchParams(queryParams).toString() : '';
+
+            options.url = `${baseUrl}/v1/users/list${queryString}`;
+            responseData = await this.helpers.httpRequest(options);
           }
 
           if (operation === 'findByMail') {
-            const email = self.getNodeParameter('email', i) as string;
+            const email = this.getNodeParameter('email', i) as string;
             options.url = `${baseUrl}/v1/users/find-by-mail/${encodeURIComponent(email)}`;
-            responseData = await self.helpers.requestWithAuthentication.call(self, 'memberspotApi', options);
+            options.method = 'GET';
+            responseData = await this.helpers.httpRequest(options);
           }
 
           if (operation === 'grantOffer') {
-            const firstname = self.getNodeParameter('firstname', i, '') as string;
-            const lastname = self.getNodeParameter('lastname', i, '') as string;
-            const email = self.getNodeParameter('email', i) as string;
-            const offerId = self.getNodeParameter('offerId', i) as string;
-            const orderId = self.getNodeParameter('orderId', i, '') as string;
+            const firstname = this.getNodeParameter('firstname', i, '') as string;
+            const lastname = this.getNodeParameter('lastname', i, '') as string;
+            const email = this.getNodeParameter('email', i) as string;
+            const offerId = this.getNodeParameter('offerId', i) as string;
+            const orderId = this.getNodeParameter('orderId', i, '') as string;
 
             options.method = 'POST';
             options.url = `${baseUrl}/v1/users/grant-user-offer-by-mail`;
             options.body = { firstname, name: lastname, email, grantOffer: offerId, orderId: orderId || undefined };
-            responseData = await self.helpers.requestWithAuthentication.call(self, 'memberspotApi', options);
+            responseData = await this.helpers.httpRequest(options);
           }
 
           if (operation === 'setOfferState') {
-            const email = self.getNodeParameter('email', i) as string;
-            const offerId = self.getNodeParameter('offerId', i) as string;
-            const active = self.getNodeParameter('active', i) as boolean;
+            const email = this.getNodeParameter('email', i) as string;
+            const offerId = this.getNodeParameter('offerId', i) as string;
+            const active = this.getNodeParameter('active', i) as boolean;
 
             options.method = 'POST';
             options.url = `${baseUrl}/v1/users/set-offer-state`;
             options.body = { email, offerId, active };
-            responseData = await self.helpers.requestWithAuthentication.call(self, 'memberspotApi', options);
+            responseData = await this.helpers.httpRequest(options);
           }
 
           if (operation === 'setOrderState') {
-            const email = self.getNodeParameter('email', i) as string;
-            const orderId = self.getNodeParameter('orderId', i) as string;
-            const active = self.getNodeParameter('active', i) as boolean;
+            const email = this.getNodeParameter('email', i) as string;
+            const orderId = this.getNodeParameter('orderId', i) as string;
+            const active = this.getNodeParameter('active', i) as boolean;
 
             options.method = 'POST';
             options.url = `${baseUrl}/v1/users/set-order-state`;
             options.body = { email, orderId, active };
-            responseData = await self.helpers.requestWithAuthentication.call(self, 'memberspotApi', options);
+            responseData = await this.helpers.httpRequest(options);
           }
 
           if (operation === 'setCustomProps') {
-            const email = self.getNodeParameter('email', i) as string;
-            const props = self.getNodeParameter('properties', i) as any;
+            const email = this.getNodeParameter('email', i) as string;
+            const props = this.getNodeParameter('properties', i) as any;
             const properties = props.property || [];
 
             options.method = 'POST';
             options.url = `${baseUrl}/v1/users/set-custom-user-properties`;
             options.body = { email, properties };
-            responseData = await self.helpers.requestWithAuthentication.call(self, 'memberspotApi', options);
+            responseData = await this.helpers.httpRequest(options);
           }
 
           if (operation === 'deleteUsers') {
-            const emailsRaw = self.getNodeParameter('emails', i) as string;
+            const emailsRaw = this.getNodeParameter('emails', i) as string;
             const emails = emailsRaw.split(',').map((e) => e.trim());
 
             options.method = 'DELETE';
             options.url = `${baseUrl}/v1/users/delete-users`;
             options.body = { emails };
-            responseData = await self.helpers.requestWithAuthentication.call(self, 'memberspotApi', options);
+            responseData = await this.helpers.httpRequest(options);
           }
 
           if (operation === 'courseProgressList') {
-            const email = self.getNodeParameter('email', i) as string;
+            const email = this.getNodeParameter('email', i) as string;
             options.url = `${baseUrl}/v1/users/course-progress/list/${encodeURIComponent(email)}`;
-            responseData = await self.helpers.requestWithAuthentication.call(self, 'memberspotApi', options);
+            responseData = await this.helpers.httpRequest(options);
           }
 
           if (operation === 'courseProgressGet') {
-            const email = self.getNodeParameter('email', i) as string;
-            const courseId = self.getNodeParameter('courseId', i) as string;
+            const email = this.getNodeParameter('email', i) as string;
+            const courseId = this.getNodeParameter('courseId', i) as string;
             options.url = `${baseUrl}/v1/users/course-progress/${encodeURIComponent(courseId)}/${encodeURIComponent(email)}`;
-            responseData = await self.helpers.requestWithAuthentication.call(self, 'memberspotApi', options);
+            responseData = await this.helpers.httpRequest(options);
           }
 
           if (operation === 'loginToken') {
-            const uid = self.getNodeParameter('uid', i) as string;
+            const uid = this.getNodeParameter('uid', i) as string;
             options.url = `${baseUrl}/v1/users/login-token/${encodeURIComponent(uid)}`;
-            responseData = await self.helpers.requestWithAuthentication.call(self, 'memberspotApi', options);
+            responseData = await this.helpers.httpRequest(options);
           }
         }
 
@@ -405,21 +506,21 @@ export class Memberspot implements INodeType {
         if (resource === 'offer') {
           if (operation === 'getAll') {
             options.url = `${baseUrl}/v1/offers`;
-            responseData = await self.helpers.requestWithAuthentication.call(self, 'memberspotApi', options);
+            responseData = await this.helpers.httpRequest(options);
           }
         }
 
         // ---------------- CHAPTER ----------------
         if (resource === 'chapter') {
           if (operation === 'enableAccess') {
-            const email = self.getNodeParameter('email', i) as string;
-            const courseId = self.getNodeParameter('courseId', i) as string;
-            const chapterId = self.getNodeParameter('chapterId', i) as string;
+            const email = this.getNodeParameter('email', i) as string;
+            const courseId = this.getNodeParameter('courseId', i) as string;
+            const chapterId = this.getNodeParameter('chapterId', i) as string;
 
             options.method = 'POST';
             options.url = `${baseUrl}/v1/chapters/chapter-access/enable`;
             options.body = { email, courseId, chapterId };
-            responseData = await self.helpers.requestWithAuthentication.call(self, 'memberspotApi', options);
+            responseData = await this.helpers.httpRequest(options);
           }
         }
 
@@ -427,22 +528,37 @@ export class Memberspot implements INodeType {
         if (resource === 'customProperty') {
           if (operation === 'list') {
             options.url = `${baseUrl}/v1/custom-user-properties/list`;
-            responseData = await self.helpers.requestWithAuthentication.call(self, 'memberspotApi', options);
+            responseData = await this.helpers.httpRequest(options);
           }
         }
 
         // ---------------- EXAM ----------------
         if (resource === 'exam') {
           if (operation === 'listResults') {
-            const examId = self.getNodeParameter('examId', i) as string;
+            const examId = this.getNodeParameter('examId', i) as string;
             options.url = `${baseUrl}/v1/exams/${encodeURIComponent(examId)}/results`;
-            responseData = await self.helpers.requestWithAuthentication.call(self, 'memberspotApi', options);
+            responseData = await this.helpers.httpRequest(options);
           }
         }
 
-        returnData.push({ json: responseData });
+        returnData.push({
+          json: responseData,
+          pairedItem: { item: i }, // Für bessere Item-Tracking
+        });
       } catch (error) {
-        throw new NodeApiError(self.getNode(), error as JsonObject, { itemIndex: i });
+        // n8n Standard-Pattern
+        if (this.continueOnFail()) {
+          returnData.push({
+            json: {
+              error: error instanceof Error ? error.message : 'Unknown error',
+            },
+            pairedItem: { item: i },
+          });
+          continue;
+        }
+
+        // NodeApiError kann mit verschiedenen Error-Typen umgehen
+        throw new NodeApiError(this.getNode(), error as JsonObject, { itemIndex: i });
       }
     }
 

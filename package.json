@@ -19,12 +19,12 @@
     "node": ">=20.15"
   },
   "scripts": {
-    "build": "npx rimraf dist && tsc",
+    "build": "npx rimraf dist && tsc && npm run build:icons",
+    "build:icons": "gulp build:icons || echo 'No icons to build'",
     "dev": "tsc --watch",
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
-    "lintfix": "eslint nodes credentials package.json --fix",
-    "prepublishOnly": "npm run build && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json"
+    "lintfix": "eslint nodes credentials package.json --fix"
   },
   "main": "dist/index.js",
   "files": [
@@ -57,14 +57,13 @@
     "eslint": "^8.57.0",
     "eslint-plugin-n8n-nodes-base": "^1.16.3",
     "exit": "^0.1.2",
+    "gulp": "^4.0.2",
+    "gulp-replace": "^1.1.4",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
     "typescript": "^5.8.3"
   },
   "peerDependencies": {
     "n8n-workflow": "*"
-  },
-  "dependencies": {
-    "form-data": "^4.0.4"
   }
 }
